@@ -18,18 +18,41 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     video {
       width: 100vw;
       height: 100vh;
       object-fit: contain;
-      background-color: #04020a;
       cursor: pointer;
+    }
+    .script-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+    .script-link:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.4);
     }
   </style>
 </head>
 <body>
   <video id="v" src="flower.mp4" poster="poster.jpg" autoplay loop muted playsinline></video>
+  <a class="script-link" href="https://github.com/veerasatyam/ForYou/blob/main/flower2.py" target="_blank" rel="noopener noreferrer">View Script ↗</a>
+
   <script>
     const v = document.getElementById('v');
     v.addEventListener('click', () => {
