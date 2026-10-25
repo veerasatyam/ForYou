@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pointillism Lily — Generative Particle Bloom</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #04020a;
+      --card-bg: rgba(18, 12, 32, 0.7);
+      --card-border: rgba(255, 140, 215, 0.18);
+      --accent: #ff8cd7;
+      --accent-glow: rgba(255, 140, 215, 0.35);
+      --gold: #ffe180;
+      --cyan: #9de8df;
+      --text-main: #f5f2fb;
+      --text-muted: #a69bb8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(135, 40, 160, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(255, 120, 180, 0.08) 0%, transparent 50%);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      max-width: 680px;
+      margin-bottom: 2rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      background: rgba(255, 140, 215, 0.1);
+      border: 1px solid rgba(255, 140, 215, 0.25);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, #ffb6e6 70%, #d4a5ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.8rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .video-wrapper {
+      position: relative;
+      background: #020106;
+      border-radius: 24px;
+      padding: 10px;
+      border: 1px solid var(--card-border);
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.7),
+        0 0 40px var(--accent-glow);
+      overflow: hidden;
+    }
+
+    .video-frame {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 9 / 16;
+      max-height: 75vh;
+      margin: 0 auto;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Controls */
+    .controls-overlay {
+      margin-top: 0.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      padding: 0.4rem 0.6rem;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    button, select, .action-link {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      padding: 0.55rem 0.95rem;
+      border-radius: 12px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    button:hover, select:hover, .action-link:hover {
+      background: rgba(255, 140, 215, 0.2);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    button:active, .action-link:active {
+      transform: translateY(0);
+    }
+
+    select {
+      outline: none;
+      appearance: none;
+      padding-right: 1.8rem;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff8cd7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.6rem center;
+      background-size: 1em;
+    }
+
+    select option {
+      background: #140d22;
+      color: var(--text-main);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      margin-top: 0.4rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #b356ff, #ff8cd7);
+      border-radius: 4px;
+      transition: width 0.1s linear;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.6rem 1.8rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .card h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.35rem;
+      margin-bottom: 0.8rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      line-height: 1.65;
+      font-size: 0.98rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .tag {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 0.3rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #dfd7ee;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Generative Pointillism
+    </div>
+    <h1>Pointillism Lily</h1>
+    <p class="subtitle">Thousands of mathematical particles blooming along parametric Bezier midrib curves with dual-pass additive glow.</p>
+  </header>
+
+  <div class="container">
+    <div class="video-wrapper">
+      <div class="video-frame">
+        <video id="lilyVideo" poster="poster.jpg" autoplay loop muted playsinline>
+          <source src="flower.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div class="progress-bar-container" id="progressContainer">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <div class="controls-overlay">
+        <div class="btn-group">
+          <button id="playPauseBtn" aria-label="Pause animation">
+            <span id="playIcon">⏸ Pause</span>
+          </button>
+          <button id="replayBtn" aria-label="Replay animation">↺ Replay</button>
+          <button id="muteBtn" aria-label="Toggle Mute">🔊 Unmute</button>
+        </div>
+
+        <div class="btn-group">
+          <select id="speedSelect" aria-label="Playback Speed">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1.0x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2.0x</option>
+          </select>
+          <a href="flower.mp4" download="pointillism_lily.mp4" class="action-link" title="Download High-Res MP4">⬇ MP4</a>
+          <button id="fullscreenBtn" aria-label="Fullscreen">⛶ Fullscreen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🌸 About the Simulation</h2>
+      <p>
+        <strong>Pointillism Lily</strong> computes and renders over 15,000 distinct particle points every frame. It simulates botanical growth phases through smooth step timing interpolations, parametric 3D space midrib curves, dynamic wind sway, and stamen anther placement.
+      </p>
+      <p>
+        The bloom's glow effect is achieved using real-time additive dual-pass scaling, illuminating individual petals as they emerge from the base soil mound into full radiance.
+      </p>
+      <div class="tags">
+        <span class="tag">Python</span>
+        <span class="tag">NumPy</span>
+        <span class="tag">Pygame</span>
+        <span class="tag">Additive Glow</span>
+        <span class="tag">Parametric Midribs</span>
+        <span class="tag">GitHub Pages</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Source Code & Repository</h2>
+      <p>
+        Built with NumPy and Pygame, rendered into high-definition WebM/H.264 video, and deployed straight from GitHub Pages.
+      </p>
+      <div style="margin-top: 1rem;">
+        <a href="https://github.com/veerasatyam/ForYou" target="_blank" rel="noopener noreferrer" class="action-link" style="display:inline-flex;">
+          ⭐ View on GitHub: veerasatyam/ForYou
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Created by <a href="https://github.com/veerasatyam" target="_blank">veerasatyam</a> • Hosted with GitHub Pages</p>
+  </footer>
+
+  <script>
+    const video = document.getElementById('lilyVideo');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const replayBtn = document.getElementById('replayBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const speedSelect = document.getElementById('speedSelect');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+
+    playPauseBtn.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+        playIcon.textContent = '⏸ Pause';
+      } else {
+        video.pause();
+        playIcon.textContent = '▶ Play';
+      }
+    });
+
+    replayBtn.addEventListener('click', () => {
+      video.currentTime = 0;
+      video.play();
+      playIcon.textContent = '⏸ Pause';
+    });
+
+    muteBtn.addEventListener('click', () => {
+      video.muted = !video.muted;
+      muteBtn.textContent = video.muted ? '🔇 Muted' : '🔊 Sound';
+    });
+
+    speedSelect.addEventListener('change', (e) => {
+      video.playbackRate = parseFloat(e.target.value);
+    });
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        video.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    video.addEventListener('timeupdate', () => {
+      if (video.duration) {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressFill.style.width = percent + '%';
+      }
+    });
+
+    progressContainer.addEventListener('click', (e) => {
+      const rect = progressContainer.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      video.currentTime = pos * video.duration;
+    });
+
+    video.addEventListener('play', () => { playIcon.textContent = '⏸ Pause'; });
+    video.addEventListener('pause', () => { playIcon.textContent = '▶ Play'; });
+  </script>
+</body>
+</html>
