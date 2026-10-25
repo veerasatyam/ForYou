@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flower</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: #04020a;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video {
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+      background-color: #04020a;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <video id="v" src="flower.mp4" poster="poster.jpg" autoplay loop muted playsinline></video>
+  <script>
+    const v = document.getElementById('v');
+    v.addEventListener('click', () => {
+      if (v.paused) v.play();
+      else v.pause();
+    });
+  </script>
+</body>
+</html>
